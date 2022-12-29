@@ -35,3 +35,12 @@ def compare_screenshots(screenshot_filename, image_filename, focus_area):
 
     # Check if the images
     return screenshot_hash == image_file_hash
+
+
+def preprocess_screenshot(img_screenshot, image_file_coords):
+    """Preprocess the screenshot and crop it to the focus areas."""
+    img_screenshot_cropped = {}
+    for _, (focus_area, _) in image_file_coords.items():
+        x1, y1, x2, y2 = focus_area
+        img_screenshot_cropped[focus_area] = img_screenshot[y1:y2, x1:x2]
+    return img_screenshot_cropped

@@ -5,16 +5,10 @@ import cv2
 
 import screenshot
 
-def preprocess_screenshot(img_screenshot, image_file_coords):
-    """Preprocess the screenshot and crop it to the focus areas."""
-    # Crop the screenshot to the focus areas
-    img_screenshot_cropped = {}
-    for _, (focus_area, _) in image_file_coords.items():
-        x1, y1, x2, y2 = focus_area
-        img_screenshot_cropped[focus_area] = img_screenshot[y1:y2, x1:x2]
-    return img_screenshot_cropped
-
 def run():
+    # Start the timer until bot forfeits the game
+    start_time = time.time()
+
     # Initialize a dictionary to store the image file paths, focus areas, and corresponding coordinates
     image_file_coords = {
         "./images/ingame_opponent_3_pokemon_left.png": ((875, 311, 875 + 173, 311 + 50), (555, 1965)),
@@ -22,6 +16,16 @@ def run():
         "./images/ingame_opponent_1_pokemon_left.png": ((875, 311, 875 + 173, 311 + 50), (555, 1965)),
         "./images/enemy_charge_attack.png": ((474, 1893, 474 + 153, 1893 + 141), (555, 1965)),
         "./images/win.png": ((297, 1740, 297 + 489, 1740 + 87), (525, 1785)),
+        "./images/loss.png": ((297, 1740, 297 + 489, 1740 + 87), (525, 1785)),
+        "./images/loss2.png": ((180, 1167, 180 + 729, 1167 + 138), (531, 2193)),
+        "./images/start.png": ((300, 2064, 783, 2181), (400, 2121)),
+        "./images/start2.png": ((300, 1980, 783, 2100), (400, 2040)),
+        "./images/start3.png": ((300, 1980, 783, 2100), (400, 2040)),
+        "./images/select_hypa_league.png": ((80, 1000, 1000, 1275), (555, 1111)),
+        "./images/welcome_to_gbl.png": ((245, 2085, 245+590, 2085+100), (555, 2133)),
+        "./images/confirm_party_search.png": ((350, 2000, 720, 2175), (540, 2100)),
+        "./images/rewards1.png": ((141, 1749, 141+213, 1749+138), (245, 1800)),
+        "./images/claim_rewards.png": ((138, 1980, 138+807, 1980+96), (336, 2022)),
     }
 
     # Preprocess the template images
@@ -38,7 +42,14 @@ def run():
         template_images[image_file] = img_template_cropped
 
     while True:
-        print("Running ingame state")
+        # Check if the timer has run out
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 30:
+            print("Timer has run out. Forfeit the game.")
+            os.system("adb shell input tap 75 460")
+            time.sleep(1)
+            os.system("adb shell input tap 429 1254")
+            time.sleep(1)
 
         # Capture a screenshot and save it to a file
         if not screenshot.capture_screenshot("screenshot.png"):
@@ -49,7 +60,7 @@ def run():
         img_screenshot = cv2.imread("screenshot.png", cv2.IMREAD_COLOR)
 
         # Preprocess the screenshot and crop it to the focus areas
-        img_screenshot_cropped = preprocess_screenshot(img_screenshot, image_file_coords)
+        img_screenshot_cropped = screenshot.preprocess_screenshot(img_screenshot, image_file_coords)
 
         # Check if any of the image files match the screenshot
         max_val = 0
@@ -77,5 +88,7 @@ def run():
             # Send an ADB command to tap on the corresponding coordinates
             adb_command = f"adb shell input tap {max_coords[0]} {max_coords[1]}"
             os.system(adb_command)
+
+            # TODO If not ingame reset timer
 
         time.sleep(1)

@@ -1,7 +1,7 @@
-import start_state
+import ingame_state
 
 # Initialize the state machine
-current_state = start_state
+current_state = ingame_state
 
 try:
     # Run the state machine
