@@ -8,4 +8,5 @@ try:
     while not current_state is None:
         current_state = current_state.run()
 except KeyboardInterrupt:
+    print("")
     print("Exiting program...")
