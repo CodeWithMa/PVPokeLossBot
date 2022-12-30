@@ -5,27 +5,63 @@ import cv2
 
 import screenshot
 
+
+def is_ingame(image_file):
+    return (
+        image_file == "./images/ingame_opponent_3_pokemon_left.png"
+        or image_file == "./images/ingame_opponent_2_pokemon_left.png"
+        or image_file == "./images/ingame_opponent_1_pokemon_left.png"
+        or image_file == "./images/enemy_charge_attack.png"
+    )
+
+
 def run():
+    # Time the bot will stay in game until it forfeits
+    time_to_stay_in_game = 15
+
     # Start the timer until bot forfeits the game
     start_time = time.time()
 
     # Initialize a dictionary to store the image file paths, focus areas, and corresponding coordinates
     image_file_coords = {
-        "./images/ingame_opponent_3_pokemon_left.png": ((875, 311, 875 + 173, 311 + 50), (555, 1965)),
-        "./images/ingame_opponent_2_pokemon_left.png": ((875, 311, 875 + 173, 311 + 50), (555, 1965)),
-        "./images/ingame_opponent_1_pokemon_left.png": ((875, 311, 875 + 173, 311 + 50), (555, 1965)),
-        "./images/enemy_charge_attack.png": ((474, 1893, 474 + 153, 1893 + 141), (555, 1965)),
+        "./images/ingame_opponent_3_pokemon_left.png": (
+            (875, 311, 875 + 173, 311 + 50),
+            (555, 1965),
+        ),
+        "./images/ingame_opponent_2_pokemon_left.png": (
+            (875, 311, 875 + 173, 311 + 50),
+            (555, 1965),
+        ),
+        "./images/ingame_opponent_1_pokemon_left.png": (
+            (875, 311, 875 + 173, 311 + 50),
+            (555, 1965),
+        ),
+        "./images/enemy_charge_attack.png": (
+            (474, 1893, 474 + 153, 1893 + 141),
+            (555, 1965),
+        ),
         "./images/win.png": ((297, 1740, 297 + 489, 1740 + 87), (525, 1785)),
+        "./images/win2.png": ((357, 1173, 357 + 357, 1173 + 123), (531, 2193)),
         "./images/loss.png": ((297, 1740, 297 + 489, 1740 + 87), (525, 1785)),
         "./images/loss2.png": ((180, 1167, 180 + 729, 1167 + 138), (531, 2193)),
+        # This has to be before start. If it is after, then start matches with 100% and this will never match with more than 100%.
+        "./images/max_number_of_games_played.png": (
+            (90, 1167, 90 + 909, 1167 + 114),
+            (537, 2196),
+        ),
         "./images/start.png": ((300, 2064, 783, 2181), (400, 2121)),
         "./images/start2.png": ((300, 1980, 783, 2100), (400, 2040)),
         "./images/start3.png": ((300, 1980, 783, 2100), (400, 2040)),
         "./images/select_hypa_league.png": ((80, 1000, 1000, 1275), (555, 1111)),
-        "./images/welcome_to_gbl.png": ((245, 2085, 245+590, 2085+100), (555, 2133)),
+        "./images/select_master_league.png": ((80, 1000, 1000, 1275), (555, 1111)),
+        "./images/welcome_to_gbl.png": (
+            (245, 2085, 245 + 590, 2085 + 100),
+            (555, 2133),
+        ),
         "./images/confirm_party_search.png": ((350, 2000, 720, 2175), (540, 2100)),
-        "./images/rewards1.png": ((141, 1749, 141+213, 1749+138), (245, 1800)),
-        "./images/claim_rewards.png": ((138, 1980, 138+807, 1980+96), (336, 2022)),
+        "./images/rewards1.png": ((141, 1749, 141 + 213, 1749 + 138), (245, 1800)),
+        "./images/rewards2.png": ((306, 1749, 306 + 213, 1749 + 138), (414, 1800)),
+        "./images/claim_rewards.png": ((138, 1980, 138 + 807, 1980 + 96), (336, 2022)),
     }
 
     # Preprocess the template images
@@ -44,7 +80,7 @@ def run():
     while True:
         # Check if the timer has run out
         elapsed_time = time.time() - start_time
-        if elapsed_time > 30:
+        if elapsed_time > time_to_stay_in_game:
             print("Timer has run out. Forfeit the game.")
             os.system("adb shell input tap 75 460")
             time.sleep(1)
@@ -60,7 +96,9 @@ def run():
         img_screenshot = cv2.imread("screenshot.png", cv2.IMREAD_COLOR)
 
         # Preprocess the screenshot and crop it to the focus areas
-        img_screenshot_cropped = screenshot.preprocess_screenshot(img_screenshot, image_file_coords)
+        img_screenshot_cropped = screenshot.preprocess_screenshot(
+            img_screenshot, image_file_coords
+        )
 
         # Check if any of the image files match the screenshot
         max_val = 0
@@ -72,7 +110,9 @@ def run():
             img_screenshot_focus_area = img_screenshot_cropped[focus_area]
 
             # Check if the cropped screenshot and template image match using the find_template function
-            result = cv2.matchTemplate(img_screenshot_focus_area, img_template, cv2.TM_CCOEFF_NORMED)
+            result = cv2.matchTemplate(
+                img_screenshot_focus_area, img_template, cv2.TM_CCOEFF_NORMED
+            )
             min_val, val, min_loc, loc = cv2.minMaxLoc(result)
 
             # Update the maximum value and corresponding image file and coordinates if necessary
@@ -89,6 +129,14 @@ def run():
             adb_command = f"adb shell input tap {max_coords[0]} {max_coords[1]}"
             os.system(adb_command)
 
-            # TODO If not ingame reset timer
+            # If not ingame reset timer
+            if not is_ingame(max_image_file):
+                start_time = time.time()
 
-        time.sleep(1)
+            if max_image_file == "./images/max_number_of_games_played.png":
+                # Turn screen off
+                os.system("adb shell input keyevent 26")
+                print("Max number of games played. Exit program.")
+                sys.exit(1)
+
+        time.sleep(2)
