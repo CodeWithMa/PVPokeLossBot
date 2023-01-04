@@ -91,7 +91,9 @@ def run():
         # Capture a screenshot and save it to a file
         if not screenshot.capture_screenshot("screenshot.png"):
             print("Error capturing screenshot. Is your phone connected?")
-            sys.exit(1)
+            # sys.exit(1)
+            time.sleep(5)
+            continue
 
         # Load the screenshot as an image
         img_screenshot = cv2.imread("screenshot.png", cv2.IMREAD_COLOR)
