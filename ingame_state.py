@@ -61,6 +61,7 @@ def run():
         "./images/confirm_party_search.png": ((350, 2000, 720, 2175), (540, 2100)),
         "./images/rewards1.png": ((141, 1749, 141 + 213, 1749 + 138), (245, 1800)),
         "./images/rewards1.1.png": ((141, 1749, 141 + 213, 1749 + 138), (245, 1800)),
+        "./images/rewards1.2.png": ((141, 1749, 141 + 213, 1749 + 138), (245, 1800)),
         "./images/rewards2.png": ((306, 1749, 306 + 213, 1749 + 138), (414, 1800)),
         "./images/claim_rewards.png": ((138, 1980, 138 + 807, 1980 + 96), (336, 2022)),
     }
@@ -78,10 +79,13 @@ def run():
         # Add the preprocessed template image to the dictionary
         template_images[image_file] = img_template_cropped
 
+    game_entered = False
+    waiting_for_device = False
+
     while True:
         # Check if the timer has run out
         elapsed_time = time.time() - start_time
-        if elapsed_time > time_to_stay_in_game:
+        if game_entered and elapsed_time > time_to_stay_in_game:
             print("Timer has run out. Forfeit the game.")
             os.system("adb shell input tap 75 460")
             time.sleep(1)
@@ -90,10 +94,20 @@ def run():
 
         # Capture a screenshot and save it to a file
         if not screenshot.capture_screenshot("screenshot.png"):
-            print("Error capturing screenshot. Is your phone connected?")
+            if waiting_for_device:
+                print(".", end="", flush=True)
+            else:
+                print("Error capturing screenshot. Waiting until phone is connected.")
+                waiting_for_device = True
+
             # sys.exit(1)
             time.sleep(5)
             continue
+
+        if waiting_for_device:
+            waiting_for_device = False
+            # print to jump to the next line after only printing ...... without jumping to next line
+            print()
 
         # Load the screenshot as an image
         img_screenshot = cv2.imread("screenshot.png", cv2.IMREAD_COLOR)
@@ -133,8 +147,13 @@ def run():
             os.system(adb_command)
 
             # If not ingame reset timer
-            if not is_ingame(max_image_file):
+            if is_ingame(max_image_file):
+                if not game_entered:
+                    start_time = time.time()
+                    game_entered = True
+            else:
                 start_time = time.time()
+                game_entered = False
 
             if max_image_file == "./images/max_number_of_games_played.png":
                 # Turn screen off
