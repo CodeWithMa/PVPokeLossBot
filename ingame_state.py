@@ -91,7 +91,8 @@ def run():
                     start_time = time.time()
                     game_entered = True
 
-                # TODO Send tap to attack?
+                # Send tap to attack
+                os.system(f"adb shell input tap 500 1400")
             else:
                 start_time = time.time()
                 game_entered = False
