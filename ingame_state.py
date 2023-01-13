@@ -83,7 +83,7 @@ def run():
 
         # Check if the maximum value is above a certain threshold
         if max_val > 0.95:
-            print(f"Image {max_image_file} matches with {max_val}%")
+            print(f"Image {max_image_file} matches with {max_val * 100}%")
 
             # If not ingame reset timer
             if is_ingame(max_image_file):
