@@ -2,9 +2,19 @@ import os
 import sys
 import time
 import cv2
+import logging
+from datetime import datetime
 
 import image_service
 import screenshot
+
+
+def set_up_logging_configuration():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
 
 def is_ingame(image_file):
@@ -20,12 +30,17 @@ def load_image_templates():
     image_dir = "./images"
     template_images = {}
     for image_file in os.listdir(image_dir):
-        img_template = cv2.imread(os.path.join(image_dir, image_file), cv2.IMREAD_COLOR)
-        template_images[image_file] = img_template
+        if image_file.endswith(".png"):
+            img_template = cv2.imread(
+                os.path.join(image_dir, image_file), cv2.IMREAD_COLOR
+            )
+            template_images[image_file] = img_template
     return template_images
 
 
 def run():
+    set_up_logging_configuration()
+
     # Time the bot will stay in game until it forfeits
     time_to_stay_in_game = 5
 
@@ -41,7 +56,7 @@ def run():
         # Check if the timer has run out
         elapsed_time = time.time() - start_time
         if game_entered and elapsed_time > time_to_stay_in_game:
-            print("Timer has run out. Forfeit the game.")
+            logging.info("Timer has run out. Forfeit the game.")
             os.system("adb shell input tap 75 460")
             time.sleep(1)
             os.system("adb shell input tap 429 1254")
@@ -52,7 +67,7 @@ def run():
             if waiting_for_device:
                 print(".", end="", flush=True)
             else:
-                print("Error capturing screenshot. Waiting until phone is connected.")
+                logging.info("Error capturing screenshot. Waiting until phone is connected.")
                 waiting_for_device = True
 
             # sys.exit(1)
@@ -79,11 +94,10 @@ def run():
                 max_val = val
                 max_image_file = image_file
                 max_coords = coords
-                # print(f"New max matching: {max_image_file} with {max_val}%")
 
         # Check if the maximum value is above a certain threshold
         if max_val > 0.95:
-            print(f"Image {max_image_file} matches with {max_val * 100}%")
+            logging.info(f"Image {max_image_file} matches with {max_val * 100}%")
 
             # If not ingame reset timer
             if is_ingame(max_image_file):
@@ -104,7 +118,7 @@ def run():
             if max_image_file == "max_number_of_games_played_text.png":
                 # Turn screen off
                 os.system("adb shell input keyevent 26")
-                print("Max number of games played. Exit program.")
+                logging.info("Max number of games played. Exit program.")
                 sys.exit(1)
 
         time.sleep(2)
