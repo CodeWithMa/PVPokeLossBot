@@ -17,6 +17,12 @@ def set_up_logging_configuration():
     )
 
 
+def send_adb_tap(x, y):
+    adb_command = f"adb shell input tap {x} {y}"
+    error_code = os.system(adb_command)
+    return error_code == 0
+
+
 def is_ingame(image_file):
     return (
         image_file == "ingame_opponent_3_pokemon_left.png"
@@ -53,21 +59,14 @@ def run():
     waiting_for_device = False
 
     while True:
-        # Check if the timer has run out
-        elapsed_time = time.time() - start_time
-        if game_entered and elapsed_time > time_to_stay_in_game:
-            logging.info("Timer has run out. Forfeit the game.")
-            os.system("adb shell input tap 75 460")
-            time.sleep(1)
-            os.system("adb shell input tap 429 1254")
-            time.sleep(1)
-
         # Capture a screenshot and save it to a file
         if not screenshot.capture_screenshot("screenshot.png"):
             if waiting_for_device:
                 print(".", end="", flush=True)
             else:
-                logging.info("Error capturing screenshot. Waiting until phone is connected.")
+                logging.info(
+                    "Error capturing screenshot. Waiting until phone is connected."
+                )
                 waiting_for_device = True
 
             # sys.exit(1)
@@ -78,6 +77,15 @@ def run():
             waiting_for_device = False
             # print to jump to the next line after only printing ...... without jumping to next line
             print()
+
+        # Check if the timer has run out
+        elapsed_time = time.time() - start_time
+        if game_entered and elapsed_time > time_to_stay_in_game:
+            logging.info("Timer has run out. Forfeit the game.")
+            send_adb_tap(75, 460)
+            time.sleep(1)
+            send_adb_tap(429, 1254)
+            time.sleep(1)
 
         # Load the screenshot as an image
         img_screenshot = cv2.imread("screenshot.png", cv2.IMREAD_COLOR)
@@ -106,14 +114,13 @@ def run():
                     game_entered = True
 
                 # Send tap to attack
-                os.system(f"adb shell input tap 500 1400")
+                send_adb_tap(500, 1400)
             else:
                 start_time = time.time()
                 game_entered = False
 
                 # Send an ADB command to tap on the corresponding coordinates
-                adb_command = f"adb shell input tap {max_coords[0]} {max_coords[1]}"
-                os.system(adb_command)
+                send_adb_tap(max_coords[0], max_coords[1])
 
             if max_image_file == "max_number_of_games_played_text.png":
                 # Turn screen off
