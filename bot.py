@@ -3,7 +3,6 @@ import sys
 import time
 import cv2
 import logging
-from datetime import datetime
 
 import image_service
 import screenshot

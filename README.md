@@ -16,7 +16,14 @@ pip install -r requirements.txt
 
 ## Usage
 
-TODO
+To run the bot, you can use the following command:
+
+``` bash
+python main.py
+```
+
+You can also configure the bot's settings by editing the `bot.py` file.
+For example, you can adjust the time the bot will stay in the game before forfeiting.
 
 ### Example Output
 
