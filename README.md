@@ -18,6 +18,24 @@ pip install -r requirements.txt
 
 TODO
 
+### Example Output
+
+PVPokeLossBot will output information about its actions and the results of the image matching.
+Below is an example of the output you may see while the bot is running:
+
+``` bash
+2023-01-20 09:45:10 Image start_button_text2.en.png matches with 99.99927282333374%
+2023-01-20 09:45:15 Image welcome_to_gbl_button_text.en.png matches with 100.0%
+2023-01-20 09:45:19 Image select_super_league.png matches with 100.0%
+2023-01-20 09:45:24 Image confirm_party_search_button.en.png matches with 99.99873638153076%
+2023-01-20 09:46:43 Image ingame_opponent_3_pokemon_left.png matches with 99.86531138420105%
+2023-01-20 09:46:48 Image ingame_opponent_2_pokemon_left.png matches with 99.82503652572632%
+2023-01-20 09:46:51 Timer has run out. Forfeit the game.
+```
+
+Each line of output shows the date and time of the action, the image file name that was matched, and the match value as a percentage.
+The bot will also output a message when the timer runs out and it forfeits the game.
+
 ## Adding New Images
 
 PVPokeLossBot uses a set of template images to compare with screenshots of the game.
@@ -28,6 +46,11 @@ To add new images to be used as templates, place them in the "images" directory 
 ``` bash
 python convert-to-greyscale.py
 ```
+
+## Known Issues
+
+The bot may get stuck on the forfeit the game screen.
+Pokemon Go has to be restarted manually.
 
 ## The Secret to Farming Stardust in Pokemon Go: PVPokeLossBot's Elo Drop Strategy
 

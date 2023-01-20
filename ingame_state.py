@@ -122,7 +122,7 @@ def run():
                 # Send an ADB command to tap on the corresponding coordinates
                 send_adb_tap(max_coords[0], max_coords[1])
 
-            if max_image_file == "max_number_of_games_played_text.png":
+            if max_image_file.startswith("max_number_of_games_played_text."):
                 # Turn screen off
                 os.system("adb shell input keyevent 26")
                 logging.info("Max number of games played. Exit program.")
