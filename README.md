@@ -6,6 +6,8 @@ PVPokeLossBot is a bot designed for the PVP mode of the mobile game Pokemon Go.
 Using computer vision, the bot analyzes screenshots of the game and makes decisions on which actions to perform, such as sending `adb tap` commands to the game.
 The bot also has a built-in timer that automatically forfeits the game after a certain period of time.
 
+![pvp leagues](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic0.gamerantimages.com%2Fwordpress%2Fwp-content%2Fuploads%2F2020%2F07%2Fpokemon-go-battle-league-season-3-e1595952020123.jpg&f=1&nofb=1&ipt=a981ff5cbef41827663812e2a15e2ece03ec8a5505f8915cdf5f5d356843d09a&ipo=images)
+
 ## Installation
 
 To use PVPokeLossBot, you will first need to install the required dependencies:
