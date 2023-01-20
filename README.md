@@ -56,6 +56,9 @@ To add new images to be used as templates, place them in the "images" directory 
 python convert-to-greyscale.py
 ```
 
+If you are using the bot in a different language than the one provided in the template images, you can contribute by adding new images for different languages.
+You can create a pull request with the new images and the corresponding language identifier in the file name, for example, `start_button_text2.fr.png` for French.
+
 ## Known Issues
 
 The bot may get stuck on the forfeit the game screen.
