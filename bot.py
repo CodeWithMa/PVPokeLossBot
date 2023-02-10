@@ -94,7 +94,12 @@ def run():
         max_image_file = None
         max_coords = None
         for image_file, img_template in template_images.items():
-            val, coords = image_service.find_image(img_screenshot, img_template)
+            result = image_service.find_image(img_screenshot, img_template)
+            if result:
+                val, coords = result
+            else:
+                # handle case where find_image returns None
+                val, coords = 0, None
 
             # Update the maximum value and corresponding image file and coordinates if necessary
             if val > max_val:

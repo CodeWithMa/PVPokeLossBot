@@ -13,6 +13,14 @@ def convert_to_greyscale(img_to_convert):
 
 
 def find_image(img_large, img_small):
+    if img_large is None:
+        print("Image large is none")
+        return
+
+    if img_small is None:
+        print("Image small is none")
+        return
+
     # Convert the images to grayscale
     gray_large = convert_to_greyscale(img_large)
     gray_small = convert_to_greyscale(img_small)
