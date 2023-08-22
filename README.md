@@ -1,5 +1,7 @@
 # PVPokeLossBot
 
+This only works on android. It uses [adb](https://developer.android.com/tools/adb) to connect to your phone.
+
 ## Summary
 
 PVPokeLossBot is a bot designed for the PVP mode of the mobile game Pokemon Go.
