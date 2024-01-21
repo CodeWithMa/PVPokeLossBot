@@ -108,7 +108,7 @@ def run():
                 max_coords = coords
 
         # Check if the maximum value is above a certain threshold
-        if max_val > 0.95:
+        if max_val > 0.90:
             logging.info(f"Image {max_image_file} matches with {max_val * 100}%")
 
             # If not ingame reset timer
