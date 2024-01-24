@@ -93,6 +93,7 @@ def run():
         max_val = 0
         max_image_file = None
         max_coords = None
+        max_games_flag = False
         for image_file, img_template in template_images.items():
             result = image_service.find_image(img_screenshot, img_template)
             if result:
@@ -102,13 +103,19 @@ def run():
                 val, coords = 0, None
 
             # Update the maximum value and corresponding image file and coordinates if necessary
-            if val > max_val:
+            # if val > max_val:
+            if ('max_number_of_games_played_text.en.png' == image_file and val > 0.42):
+                max_val = val
+                max_image_file = image_file
+                max_coords = coords
+                max_games_flag = True
+            elif (val > max_val and not max_games_flag):
                 max_val = val
                 max_image_file = image_file
                 max_coords = coords
 
         # Check if the maximum value is above a certain threshold
-        if max_val > 0.95:
+        if max_val > 0.90 or max_games_flag:
             logging.info(f"Image {max_image_file} matches with {max_val * 100}%")
 
             # If not ingame reset timer
