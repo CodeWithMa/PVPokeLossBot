@@ -4,27 +4,13 @@ import time
 import cv2
 import logging
 
-from . import image_service
-from . import screenshot
-
-
-def send_adb_tap(x, y):
-    adb_command = f"adb shell input tap {x} {y}"
-    error_code = os.system(adb_command)
-    return error_code == 0
+from src import image_service
+from src import screenshot
+from src.adb_commands import send_adb_tap, turn_screen_off
 
 
 def is_ingame(image_file: str) -> bool:
-    # return (
-    #     image_file.startswith("ingame_")
-    #     or image_file == "enemy_charge_attack.png"
-    # )
-    return (
-        image_file == "ingame_opponent_3_pokemon_left.png"
-        or image_file == "ingame_opponent_2_pokemon_left.png"
-        or image_file == "ingame_opponent_1_pokemon_left.png"
-        or image_file == "enemy_charge_attack.png"
-    )
+    return image_file.startswith("ingame_") or image_file == "enemy_charge_attack.png"
 
 
 def load_image_templates():
@@ -33,9 +19,7 @@ def load_image_templates():
     images = os.listdir(image_dir)
     for image in images:
         if image.endswith(".png"):
-            img_template = cv2.imread(
-                os.path.join(image_dir, image), cv2.IMREAD_COLOR
-            )
+            img_template = cv2.imread(os.path.join(image_dir, image), cv2.IMREAD_COLOR)
             template_images[image] = img_template
     logging.info(f"Loaded {len(template_images)} image templates.")
     return template_images
@@ -123,8 +107,7 @@ def run():
                 send_adb_tap(max_coords[0], max_coords[1])
 
             if max_image_file.startswith("max_number_of_games_played_text."):
-                # Turn screen off
-                os.system("adb shell input keyevent 26")
+                turn_screen_off()
                 logging.info("Max number of games played. Exit program.")
                 sys.exit(1)
 
