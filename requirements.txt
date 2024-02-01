@@ -1,2 +1,3 @@
-numpy==1.26.0
+attrs==23.2.0
 opencv-python==4.7.0.68
+pytest==8.0.0

@@ -4,16 +4,8 @@ import time
 import cv2
 import logging
 
-import image_service
-import screenshot
-
-
-def set_up_logging_configuration():
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+from . import image_service
+from . import screenshot
 
 
 def send_adb_tap(x, y):
@@ -22,7 +14,11 @@ def send_adb_tap(x, y):
     return error_code == 0
 
 
-def is_ingame(image_file):
+def is_ingame(image_file: str) -> bool:
+    # return (
+    #     image_file.startswith("ingame_")
+    #     or image_file == "enemy_charge_attack.png"
+    # )
     return (
         image_file == "ingame_opponent_3_pokemon_left.png"
         or image_file == "ingame_opponent_2_pokemon_left.png"
@@ -34,18 +30,18 @@ def is_ingame(image_file):
 def load_image_templates():
     image_dir = "./images"
     template_images = {}
-    for image_file in os.listdir(image_dir):
-        if image_file.endswith(".png"):
+    images = os.listdir(image_dir)
+    for image in images:
+        if image.endswith(".png"):
             img_template = cv2.imread(
-                os.path.join(image_dir, image_file), cv2.IMREAD_COLOR
+                os.path.join(image_dir, image), cv2.IMREAD_COLOR
             )
-            template_images[image_file] = img_template
+            template_images[image] = img_template
+    logging.info(f"Loaded {len(template_images)} image templates.")
     return template_images
 
 
 def run():
-    set_up_logging_configuration()
-
     # Time the bot will stay in game until it forfeits
     time_to_stay_in_game = 5
 
@@ -91,7 +87,7 @@ def run():
 
         # Check if any of the image files match the screenshot
         max_val = 0
-        max_image_file = None
+        max_image_file: str = ""
         max_coords = None
         for image_file, img_template in template_images.items():
             result = image_service.find_image(img_screenshot, img_template)

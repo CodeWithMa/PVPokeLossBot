@@ -1,4 +1,17 @@
-import bot
+import logging
+
+from src import bot
+
+
+def set_up_logging_configuration():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+
+set_up_logging_configuration()
 
 try:
     bot.run()
