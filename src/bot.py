@@ -7,13 +7,11 @@ import logging
 from src import image_service
 from src import screenshot
 from src.adb_commands import send_adb_tap, turn_screen_off
+from src.game_action import GameActions
+from src.image_decision_maker import make_decision
 
 
-def is_ingame(image_file: str) -> bool:
-    return image_file.startswith("ingame_") or image_file == "enemy_charge_attack.png"
-
-
-def load_image_templates():
+def load_image_templates() -> dict[str, cv2.Mat]:
     image_dir = "./images"
     template_images = {}
     images = os.listdir(image_dir)
@@ -66,49 +64,23 @@ def run():
             send_adb_tap(429, 1254)
             time.sleep(1)
 
-        # Load the screenshot as an image
-        img_screenshot = cv2.imread("screenshot.png", cv2.IMREAD_COLOR)
+        next_action = make_decision(template_images, "screenshot.png")
 
-        # Check if any of the image files match the screenshot
-        max_val = 0
-        max_image_file: str = ""
-        max_coords = None
-        for image_file, img_template in template_images.items():
-            result = image_service.find_image(img_screenshot, img_template)
-            if result:
-                val, coords = result
-            else:
-                # handle case where find_image returns None
-                val, coords = 0, None
-
-            # Update the maximum value and corresponding image file and coordinates if necessary
-            if val > max_val:
-                max_val = val
-                max_image_file = image_file
-                max_coords = coords
-
-        # Check if the maximum value is above a certain threshold
-        if max_val > 0.90:
-            logging.info(f"Image {max_image_file} matches with {max_val * 100}%")
-
+        if next_action.action == GameActions.tap_position:
             # If not ingame reset timer
-            if is_ingame(max_image_file):
+            if next_action.is_ingame:
                 if not game_entered:
                     start_time = time.time()
                     game_entered = True
-
-                # Send tap to attack
-                send_adb_tap(500, 1400)
             else:
                 start_time = time.time()
                 game_entered = False
 
-                # Send an ADB command to tap on the corresponding coordinates
-                send_adb_tap(max_coords[0], max_coords[1])
+            send_adb_tap(next_action.position[0], next_action.position[1])
 
-            if max_image_file.startswith("max_number_of_games_played_text."):
-                turn_screen_off()
-                logging.info("Max number of games played. Exit program.")
-                sys.exit(1)
+        elif next_action.action == GameActions.exit_program:
+            turn_screen_off()
+            logging.info("Max number of games played. Exit program.")
+            sys.exit(1)
 
         time.sleep(2)

@@ -1,4 +1,4 @@
-from src.bot import is_ingame
+from src.image_decision_maker import is_ingame
 
 
 def test_is_ingame():
