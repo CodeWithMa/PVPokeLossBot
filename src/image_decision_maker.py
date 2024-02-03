@@ -1,6 +1,8 @@
 import logging
 import cv2
+import os
 
+from src import constants
 from src import image_service
 from src.game_action import GameAction, GameActions
 
@@ -9,7 +11,16 @@ def is_ingame(image_file: str) -> bool:
     return image_file.startswith("ingame_") or image_file == "enemy_charge_attack.png"
 
 
+def is_screen_to_attack(image_file: str) -> bool:
+    return image_file.startswith("ingame_")
+
+
 def make_decision(template_images: dict[str, cv2.Mat], image_name: str) -> GameAction:
+    # Check if the image file exists
+    if not os.path.exists(image_name):
+        logging.error(f"Image file {image_name} does not exist.")
+        raise FileNotFoundError
+
     # Load the screenshot as an image
     img_screenshot = cv2.imread(image_name, cv2.IMREAD_COLOR)
 
@@ -38,12 +49,22 @@ def make_decision(template_images: dict[str, cv2.Mat], image_name: str) -> GameA
         if max_image_file.startswith("max_number_of_games_played_text."):
             return GameAction(action=GameActions.exit_program)
 
-        # If not ingame reset timer
+        # If ingame return is_ingame with true
         if is_ingame(max_image_file):
+
             # Send tap to attack
-            return GameAction(action=GameActions.tap_position, position=(500, 1400), is_ingame=True)
+            position_to_tap = max_coords
+            if is_screen_to_attack(max_image_file):
+                position_to_tap = constants.ATTACK_TAP_POSITION
+
+            return GameAction(
+                action=GameActions.tap_position,
+                position=position_to_tap,
+                is_ingame=True,
+            )
         else:
             # Send an ADB command to tap on the corresponding coordinates
             return GameAction(action=GameActions.tap_position, position=max_coords)
 
+    logging.info(f"No image matches.")
     return GameAction()

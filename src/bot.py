@@ -1,26 +1,13 @@
-import os
 import sys
 import time
-import cv2
 import logging
 
-from src import image_service
+from src import constants
 from src import screenshot
 from src.adb_commands import send_adb_tap, turn_screen_off
 from src.game_action import GameActions
 from src.image_decision_maker import make_decision
-
-
-def load_image_templates() -> dict[str, cv2.Mat]:
-    image_dir = "./images"
-    template_images = {}
-    images = os.listdir(image_dir)
-    for image in images:
-        if image.endswith(".png"):
-            img_template = cv2.imread(os.path.join(image_dir, image), cv2.IMREAD_COLOR)
-            template_images[image] = img_template
-    logging.info(f"Loaded {len(template_images)} image templates.")
-    return template_images
+from src.image_template_loader import load_image_templates
 
 
 def run():
@@ -37,7 +24,7 @@ def run():
 
     while True:
         # Capture a screenshot and save it to a file
-        if not screenshot.capture_screenshot("screenshot.png"):
+        if not screenshot.capture_screenshot(constants.SCREENSHOT_FILE_NAME):
             if waiting_for_device:
                 print(".", end="", flush=True)
             else:
@@ -64,7 +51,7 @@ def run():
             send_adb_tap(429, 1254)
             time.sleep(1)
 
-        next_action = make_decision(template_images, "screenshot.png")
+        next_action = make_decision(template_images, constants.SCREENSHOT_FILE_NAME)
 
         if next_action.action == GameActions.tap_position:
             # If not ingame reset timer
