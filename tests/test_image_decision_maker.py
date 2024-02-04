@@ -78,9 +78,7 @@ def test_make_decision_collects_rewards1(template_images):
 
     assert result.action is not None
     assert result.action == GameActions.tap_position
-    # TODO correct position
-    assert result.position == (542, 2006)
-    assert not result.position == (542, 2006)
+    assert result.position == (285, 1780)
     assert not result.is_ingame
 
 
@@ -89,7 +87,7 @@ def test_make_decision_collects_rewards2(template_images):
 
     assert result.action is not None
     assert result.action == GameActions.tap_position
-    assert not result.position == (542, 2006)
+    assert result.position == (127, 1805)
     assert not result.is_ingame
 
 
@@ -98,7 +96,7 @@ def test_make_decision_collects_rewards3(template_images):
 
     assert result.action is not None
     assert result.action == GameActions.tap_position
-    assert not result.position == (542, 2006)
+    assert result.position == (590, 1758)
     assert not result.is_ingame
 
 

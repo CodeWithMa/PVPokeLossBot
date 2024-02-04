@@ -1,5 +1,7 @@
 import cv2
 
+from src.find_image_result import FindImageResult
+
 
 def show_image(img, top_left, bottom_right):
     # Draw rectangle and Show the result
@@ -12,7 +14,7 @@ def convert_to_greyscale(img_to_convert):
     return cv2.cvtColor(img_to_convert, cv2.COLOR_BGR2GRAY)
 
 
-def find_image(img_large, img_small):
+def find_image(img_large, img_small) -> FindImageResult | None:
     if img_large is None:
         print("Image large is none")
         return
@@ -44,4 +46,4 @@ def find_image(img_large, img_small):
     # show_image(img_large, top_left, bottom_right)
 
     # Return the maximum value and the center of the matching area
-    return (max_val, (x, y))
+    return FindImageResult(max_val, (x, y))

@@ -4,6 +4,7 @@ import os
 
 from src import constants
 from src import image_service
+from src.find_image_result import FindImageResult
 from src.game_action import GameAction, GameActions
 
 
@@ -25,46 +26,68 @@ def make_decision(template_images: dict[str, cv2.Mat], image_name: str) -> GameA
     img_screenshot = cv2.imread(image_name, cv2.IMREAD_COLOR)
 
     # Check if any of the image files match the screenshot
-    max_val = 0
-    max_image_file: str = ""
-    max_coords = None
+    find_image_results: list[tuple[str, FindImageResult]] = []
     for image_file, img_template in template_images.items():
         result = image_service.find_image(img_screenshot, img_template)
         if result:
-            val, coords = result
-        else:
-            # handle case where find_image returns None
-            val, coords = 0, None
+            if result.val > 0.90:
+                find_image_results.append((image_file, result))
 
-        # Update the maximum value and corresponding image file and coordinates if necessary
-        if val > max_val:
-            max_val = val
-            max_image_file = image_file
-            max_coords = coords
+    logging.debug(find_image_results)
+    return analyze_results_and_return_action_with_priority(find_image_results)
 
-    # Check if the maximum value is above a certain threshold
-    if max_val > 0.90:
-        logging.info(f"Image {max_image_file} matches with {max_val * 100}%")
 
-        if max_image_file.startswith("max_number_of_games_played_text."):
-            return GameAction(action=GameActions.exit_program)
+def analyze_results_and_return_action_with_priority(
+    find_image_results: list[tuple[str, FindImageResult]]
+) -> GameAction:
+    if len(find_image_results) == 0:
+        logging.debug("No image matches.")
+        return GameAction()
 
-        # If ingame return is_ingame with true
-        if is_ingame(max_image_file):
+    priority_list = [
+        "max_number_of_games_played_text.",
+        "reward_",
+        "start_button_text",
+        # TODO: Add other images here
+    ]
 
-            # Send tap to attack
-            position_to_tap = max_coords
-            if is_screen_to_attack(max_image_file):
-                position_to_tap = constants.ATTACK_TAP_POSITION
+    for priority_file in priority_list:
+        for result in find_image_results:
+            image_file = result[0]
+            find_image_result = result[1]
+            if image_file.startswith(priority_file):
+                return analyze_results_and_return_action(image_file, find_image_result)
 
-            return GameAction(
-                action=GameActions.tap_position,
-                position=position_to_tap,
-                is_ingame=True,
-            )
-        else:
-            # Send an ADB command to tap on the corresponding coordinates
-            return GameAction(action=GameActions.tap_position, position=max_coords)
+    # Handle case where image is not in priority_list
+    # Just use the best matching image
+    max_image_file, max_result = max(find_image_results, key=lambda x: x[1].val)
+    return analyze_results_and_return_action(max_image_file, max_result)
 
-    logging.info(f"No image matches.")
-    return GameAction()
+
+def analyze_results_and_return_action(
+    image_file: str, find_image_result: FindImageResult
+) -> GameAction:
+    logging.info(f"Image {image_file} matches with {find_image_result.val * 100}%")
+
+    if image_file.startswith("max_number_of_games_played_text."):
+        return GameAction(action=GameActions.exit_program)
+
+    # If ingame return is_ingame with true
+    if is_ingame(image_file):
+
+        # Send tap to attack
+        position_to_tap = find_image_result.coords
+        if is_screen_to_attack(image_file):
+            position_to_tap = constants.ATTACK_TAP_POSITION
+
+        return GameAction(
+            action=GameActions.tap_position,
+            position=position_to_tap,
+            is_ingame=True,
+        )
+    else:
+        # Send an ADB command to tap on the corresponding coordinates
+        return GameAction(
+            action=GameActions.tap_position,
+            position=find_image_result.coords,
+        )

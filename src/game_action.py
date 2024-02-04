@@ -11,5 +11,5 @@ class GameActions(Enum):
 @define(frozen=True)
 class GameAction:
     action: GameActions = GameActions.no_action
-    position: tuple[int,int] = (0, 0)
+    position: tuple[int, int] = (0, 0)
     is_ingame: bool = False
