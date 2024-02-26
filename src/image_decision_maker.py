@@ -48,6 +48,8 @@ def analyze_results_and_return_action_with_priority(
         "max_number_of_games_played_text.",
         "reward_",
         "start_button_text",
+        "select_master",
+        "select_hypa",
         # TODO: Add other images here
     ]
 

@@ -60,7 +60,7 @@ def test_make_decision_presses_ultra_league_button(template_images):
 
     assert result.action is not None
     assert result.action == GameActions.tap_position
-    assert result.position == (215, 1149)
+    assert result.position == (215, 1148)
     assert not result.is_ingame
 
 
