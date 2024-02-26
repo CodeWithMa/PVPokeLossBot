@@ -30,9 +30,11 @@ def make_decision(template_images: dict[str, cv2.Mat], image_name: str) -> GameA
     for image_file, img_template in template_images.items():
         result = image_service.find_image(img_screenshot, img_template)
         if result:
+            logging.debug(f"Image {image_file} matches with {result.val * 100}%")
             if result.val > 0.90:
                 find_image_results.append((image_file, result))
 
+    logging.debug("Found images over threshold:")
     logging.debug(find_image_results)
     return analyze_results_and_return_action_with_priority(find_image_results)
 
