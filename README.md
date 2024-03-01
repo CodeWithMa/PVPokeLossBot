@@ -26,6 +26,12 @@ To run the bot, you can use the following command:
 python main.py
 ```
 
+Run it with `--verbose` to get more output.
+
+``` bash
+python main.py --verbose
+```
+
 You can also configure the bot's settings by editing the `bot.py` file.
 For example, you can adjust the time the bot will stay in the game before forfeiting.
 
