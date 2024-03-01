@@ -1,6 +1,7 @@
 # PVPokeLossBot
 
 This only works on android. It uses [adb](https://developer.android.com/tools/adb) to connect to your phone.
+It works fine on my Pixel 6a. If your phone's resolution differs too much, it might not detect the correct state.
 
 ## Summary
 
