@@ -13,3 +13,4 @@ class GameAction:
     action: GameActions = GameActions.no_action
     position: tuple[int, int] = (0, 0)
     is_ingame: bool = False
+    delay_before_tap: float = 0.0  # Add this field

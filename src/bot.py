@@ -1,73 +1,88 @@
 import sys
 import time
 import logging
+import hashlib
 
 from src import constants
 from src import screenshot
 from src.adb_commands import send_adb_tap, turn_screen_off
 from src.game_action import GameActions
-from src.image_decision_maker import make_decision
+from src.image_decision_maker import find_images_over_threshold
 from src.image_template_loader import load_image_templates
 
+last_hash = None
 
-def run():
-    # Time the bot will stay in game until it forfeits
-    time_to_stay_in_game = 5
+def hash_image(path):
+    with open(path, 'rb') as f:
+        return hashlib.md5(f.read()).hexdigest()
 
-    # Start the timer until bot forfeits the game
+def run(skip_adb_check=False):
+    global last_hash 
+    time_to_stay_in_game = 3
     start_time = time.time()
-
     template_images = load_image_templates()
 
     game_entered = False
     waiting_for_device = False
 
     while True:
-        # Capture a screenshot and save it to a file
+        # Capture screenshot
         if not screenshot.capture_screenshot(constants.SCREENSHOT_FILE_NAME):
             if waiting_for_device:
                 print(".", end="", flush=True)
             else:
-                logging.info(
-                    "Error capturing screenshot. Waiting until phone is connected."
-                )
+                logging.info("Error capturing screenshot. Waiting until phone is connected.")
                 waiting_for_device = True
-
-            # sys.exit(1)
             time.sleep(5)
             continue
 
         if waiting_for_device:
             waiting_for_device = False
-            # print to jump to the next line after only printing ...... without jumping to next line
-            print()
+            new_hash = hash_image(constants.SCREENSHOT_FILE_NAME)
+            if new_hash == last_hash:
+                time.sleep(2.5)
+                continue
+            last_hash = new_hash
 
-        # Check if the timer has run out
-        elapsed_time = time.time() - start_time
-        if game_entered and elapsed_time > time_to_stay_in_game:
-            logging.info("Timer has run out. Forfeit the game.")
-            send_adb_tap(75, 460)
-            time.sleep(1)
-            send_adb_tap(429, 1254)
-            time.sleep(1)
+        # Frame-skip: skip processing if screenshot hasn't changed
+        new_hash = hash_image(constants.SCREENSHOT_FILE_NAME)
+        logging.debug(f"Screenshot hash: {new_hash}")
+        if new_hash == last_hash:
+            time.sleep(2.5)
+            continue
+        last_hash = new_hash
 
-        next_action = make_decision(template_images, constants.SCREENSHOT_FILE_NAME)
+        # --- NEW LOGIC: Pick best match with y > 296, or second best if top is not valid ---
+        logging.info("Running image matching...")
 
-        if next_action.action == GameActions.tap_position:
-            # If not ingame reset timer
-            if next_action.is_ingame:
-                if not game_entered:
-                    start_time = time.time()
-                    game_entered = True
-            else:
-                start_time = time.time()
-                game_entered = False
+        # Get all matches above threshold (assuming this returns sorted list of (img_name, FindImageResult))
+        matches = find_images_over_threshold(template_images, constants.SCREENSHOT_FILE_NAME)
+        logging.info(f"Found images over threshold: {matches}")
 
-            send_adb_tap(next_action.position[0], next_action.position[1])
+        tapped = False
+        for img_name, result in matches:
+            if result.coords[1] > 296:
+                # Use GameAction decision for delay
+                from src.image_decision_maker import analyze_results_and_return_action
+                action = analyze_results_and_return_action(img_name, result)
+                if getattr(action, "delay_before_tap", 0.0) > 0:
+                    logging.info(f"Waiting {action.delay_before_tap} seconds before tapping for '{img_name}'...")
+                    time.sleep(action.delay_before_tap)
+                logging.info(f"Tapping {img_name} at {result.coords} (confidence {result.val*100:.2f}%)")
+                send_adb_tap(result.coords[0], result.coords[1])
+                tapped = True
+                break  # only tap the best match with y > 296
 
-        elif next_action.action == GameActions.exit_program:
-            turn_screen_off()
-            logging.info("Max number of games played. Exit program.")
-            sys.exit()
+        if not tapped and matches:
+            # log a warning if no valid taps found
+            logging.info(f"No matches with y > 296 found; skipping tap.")
 
-        time.sleep(2)
+        # Exit logic if needed
+        # (implement your exit logic here as before)
+        # Example:
+        # if some_exit_condition:
+        #     turn_screen_off()
+        #     logging.info("Max number of games played. Exit program.")
+        #     sys.exit()
+
+        time.sleep(1.5)

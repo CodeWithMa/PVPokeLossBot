@@ -1,7 +1,8 @@
-from attrs import define
+import attr
 
-
-@define(frozen=True)
+@attr.s(frozen=True)
 class FindImageResult:
-    val: float
-    coords: tuple[int, int]
+    val = attr.ib()
+    coords = attr.ib()
+    width = attr.ib()
+    height = attr.ib()

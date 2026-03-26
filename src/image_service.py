@@ -45,5 +45,5 @@ def find_image(img_large, img_small) -> FindImageResult | None:
     # bottom_right = (top_left[0] + w, top_left[1] + h)
     # show_image(img_large, top_left, bottom_right)
 
-    # Return the maximum value and the center of the matching area
-    return FindImageResult(max_val, (x, y))
+    # Return the maximum value and the center of the matching area, plus matched region size
+    return FindImageResult(max_val, (x, y), w, h)
